@@ -1,14 +1,20 @@
 import math
-from typing import Callable, List, Optional
+from typing import List, Optional
 import random as rd
 
-
-# Definition of different strategies players can use
-
-StrategyFunc = Callable[["Player", "Property"], bool]
+from abstract_classes import (
+    BaseBoard,
+    BaseDice,
+    BaseGame,
+    BasePlayer,
+    BaseProperty,
+    StrategyFunc,
+)
 
 
 class Strategies:
+    """Definition of different strategies players can use"""
+
     @staticmethod
     def impulsive(player: "Player", property: "Property") -> bool:
         return True
@@ -26,48 +32,23 @@ class Strategies:
         return rd.choice([True, False])
 
 
-class Dice:
+class Dice(BaseDice):
     def roll(self) -> int:
         return rd.randint(1, 6)
 
 
-class Player:
-    amount: int
-    position: int = 0
+class Player(BasePlayer):
     INITIAL_AMOUNT: int = 300
 
     def __init__(self, should_buy: StrategyFunc) -> None:
         self._should_buy = should_buy
         self.amount = self.INITIAL_AMOUNT
 
-    def should_buy(self, property: "Property"):
+    def should_buy(self, property: "BaseProperty"):
         return self._should_buy(self, property)
 
-    def has_amount_to_buy(self, property: "Property"):
-        return self.amount >= property.price
 
-    def buy(self, property: "Property"):
-        if not property.is_available:
-            raise ValueError("Property is not available")
-        if not self.has_amount_to_buy(property):
-            raise ValueError("Player does not have enough amount")
-        property.owner = self
-        self.amount -= property.price
-
-    def pay_rent(self, property: "Property"):
-        property.owner.amount += property.rent
-        self.amount -= property.rent
-
-    @property
-    def bankrupt(self):
-        return self.amount < 0
-
-
-class Property:
-    price: int
-    rent: int
-    owner: Optional[Player]
-
+class Property(BaseProperty):
     def __init__(self, price: int):
         self.price = price
         self.rent = int(0.1 * price)
@@ -78,12 +59,10 @@ class Property:
         return self.owner is None
 
 
-class Board:
+class Board(BaseBoard):
     MIN_PROP_PRICE: int = 100
     MAX_PROP_PRICE: int = 250
     PROP_COUNT: int = 20
-
-    properties: List[Property]
 
     def __init__(self):
         self.properties = [
@@ -92,20 +71,14 @@ class Board:
         ]
 
 
-class Game:
-    seed: int
-    board: Board
-    dice: Dice
-    players: List[Player]
-    active_players: List[Player]
-    winner: Optional[Player] = None
-    round: int = 0
+class Game(BaseGame):
+    winner: Optional[BasePlayer] = None
     timeout: bool = False
     MAX_ROUNDS = 1000
     INITIAL_AMOUNT = 300
     PRIZE_ON_ROUND_COMPLETION = 100
 
-    def __init__(self, board, dice, players: List[Player]) -> None:
+    def __init__(self, board, dice, players: List[BasePlayer]) -> None:
         self.board = board
         self.dice = dice
         self.players = players
@@ -123,16 +96,16 @@ class Game:
         self.active_players = self.players
         self.winner = None
 
-    def on_player_bankrupt(self, player: Player):
+    def on_player_bankrupt(self, player: BasePlayer):
         self.active_players.remove(player)
         for prop in self.board.properties:
             if prop.owner == player:
                 prop.owner = None
 
-    def on_player_round_completion(self, player: Player):
+    def on_player_round_completion(self, player: BasePlayer):
         player.amount += self.PRIZE_ON_ROUND_COMPLETION
 
-    def move_player(self, player: Player, dice_value: int):
+    def move_player(self, player: BasePlayer, dice_value: int):
         if player.position + dice_value >= self.property_count:
             player.position = (player.position + dice_value) % self.property_count
             for _ in range(
@@ -142,7 +115,7 @@ class Game:
         else:
             player.position += dice_value
 
-    def execute_player_turn(self, player: Player):
+    def execute_player_turn(self, player: BasePlayer):
         target_property = self.board.properties[player.position]
         if target_property.is_available:
             if player.has_amount_to_buy(target_property) and player.should_buy(
@@ -152,7 +125,7 @@ class Game:
         else:
             player.pay_rent(target_property)
 
-    def should_run(self):
+    def should_continue(self):
         if len(self.active_players) == 1:
             return False
         if self.round >= self.MAX_ROUNDS:
@@ -178,18 +151,6 @@ class Game:
             else:
                 self.winner = self.active_players[0]
 
-    def run(self):
-        self.setup()
-        while self.should_run():
-            for player in self.active_players:
-                result = self.dice.roll()
-                self.move_player(player, result)
-                self.execute_player_turn(player)
-                if player.bankrupt:
-                    self.on_player_bankrupt(player)
-            self.round += 1
-        self.finish()
-
 
 def run_simulation():
     ITERATIONS_TO_RUN = 300
@@ -206,7 +167,7 @@ def run_simulation():
             Player(Strategies.random),
         ]
         game = Game(board, dice, players)
-        game.run()
+        game.play()
         games.append(game)
 
     # Calculate and display results

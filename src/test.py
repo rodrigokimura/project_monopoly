@@ -288,34 +288,34 @@ class TestGameRules(unittest.TestCase):
             self.assertEqual(player.amount, game.active_players[0].amount)
         self.assertEqual(game.winner, initial_order[0])
 
-    def test_should_run_should_be_true(self):
+    def test_should_continue_should_be_true(self):
         players = [self.p1, self.p2, self.p3, self.p4]
         game = Game(self.board, self.dice, players)
         game.setup()
-        self.assertTrue(game.should_run())
+        self.assertTrue(game.should_continue())
 
-    def test_should_run_when_only_one_player_should_be_false(self):
+    def test_should_continue_when_only_one_player_should_be_false(self):
         players = [self.p1, self.p2, self.p3, self.p4]
         game = Game(self.board, self.dice, players)
         game.active_players = [self.p1]
-        self.assertFalse(game.should_run())
+        self.assertFalse(game.should_continue())
 
-    def test_should_run_when_round_max_out_should_be_false(self):
+    def test_should_continue_when_round_max_out_should_be_false(self):
         players = [self.p1, self.p2, self.p3, self.p4]
         game = Game(self.board, self.dice, players)
         game.setup()
         game.round = game.MAX_ROUNDS
-        self.assertFalse(game.should_run())
+        self.assertFalse(game.should_continue())
 
     @patch("game.rd")
-    def test_run_with_fixed_seed_should_succeed(self, rnd):
+    def test_play_with_fixed_seed_should_succeed(self, rnd):
         rnd.randint._mock_side_effect = Random(42).randint
         rnd.shuffle._mock_side_effect = Random(42).shuffle
         rd.seed(42)
         players = [self.p1, self.p2, self.p3, self.p4]
         game = Game(Board(), Dice(), players)
         game.setup()
-        game.run()
+        game.play()
         self.assertEqual(game.round, game.MAX_ROUNDS)
         self.assertIs(game.winner, self.p4)
 
