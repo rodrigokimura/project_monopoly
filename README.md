@@ -8,7 +8,7 @@ Implementation of a monopoly-like game, with over simplified rules. Pure python-
 
 In this version of the game, the players will take turns, on a predefined random order set at the beginning of the match. Each player will start the game with 300 of amount.  
 
-In this game, the board is composed by 20 properties in a sequence. Each property has a sale price, a rent value, an owner (if already bought) and follow a predefined order in the board. It is not possible to build hotels or any other upgrade in the properties of this board, for simplification purposes.
+In this game, the board is composed by 20 properties in a sequence. Each property has a sale price, a rent value, an owner (if already bought) and follows a predefined order in the board. It is not possible to build hotels or any other upgrade in the properties of this board, for simplification purposes.
 
 At the beginning of each turn, the player rolls an equiprobable 6-faces dice to determine how many slots in the board the player will walk.
 
@@ -49,3 +49,43 @@ An execution of the proposed program must run 300 simulations, printing in the c
 - How many turns on average does a game take;
 - What's the win rate by player behavior;
 - Which behavior wins the most?
+
+
+## Implementation
+
+The following diagram shows the relationship between the main classes.  
+This design was made to allow the dependencies to be concentrated in the abstract layer, designated by the Base prefix, allowing a loose coupling between the concrete classes.  
+The player "should_buy" behaviour uses a function-based strategy pattern to allow better extensibility.
+
+```mermaid
+    classDiagram
+        BaseBoard *--> BaseProperty
+        BaseGame o--> BasePlayer
+        BaseProperty --> BasePlayer
+        BaseGame --> BaseBoard
+        BasePlayer <|.. Player
+        Player --> StrategyFunc
+
+        class BaseProperty {
+            owner: Optional[BasePlayer]
+        }
+
+        class BaseBoard {
+            properties: List[BaseProperty]
+        }
+
+        class BaseGame {
+            players: List[BasePlayer]
+            board: BaseBoard
+        }
+
+        class BasePlayer {
+            amount: int
+            position: int
+            should_buy()
+        }
+
+        class Player {
+            _should_buy: StrategyFunc
+        }
+```
