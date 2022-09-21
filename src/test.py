@@ -11,7 +11,7 @@ from game import Board, Dice, Game, Strategies, Player, Property, run_simulation
 class TestPlayerBuyBehaviour(unittest.TestCase):
     def setUp(self):
         self.impulsive_player = Player(Strategies.impulsive)
-        self.picky_player = Player(Strategies.picky)
+        self.picky_player = Player(Strategies.demanding)
         self.cautious_player = Player(Strategies.cautious)
         self.random_player = Player(Strategies.random)
 
@@ -79,7 +79,7 @@ class TestPlayerActions(unittest.TestCase):
 class TestGameRules(unittest.TestCase):
     def setUp(self):
         self.p1 = Player(Strategies.impulsive)
-        self.p2 = Player(Strategies.picky)
+        self.p2 = Player(Strategies.demanding)
         self.p3 = Player(Strategies.cautious)
         self.p4 = Player(Strategies.random)
         self.board = Board()
@@ -335,7 +335,7 @@ class TestRunSimulation(unittest.TestCase):
         self.assertIn("300 games finished by timeout (out of 300)", printed_text)
         self.assertIn("Average round number: 1000.0", printed_text)
         self.assertIn("Impulsive: 23.3%", printed_text)
-        self.assertIn("Picky: 31.7%", printed_text)
+        self.assertIn("Demanding: 31.7%", printed_text)
         self.assertIn("Cautious: 24.0%", printed_text)
         self.assertIn("Random: 21.0%", printed_text)
 

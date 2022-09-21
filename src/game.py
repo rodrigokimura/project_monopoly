@@ -20,7 +20,7 @@ class Strategies:
         return True
 
     @staticmethod
-    def picky(player: "Player", property: "Property") -> bool:
+    def demanding(player: "Player", property: "Property") -> bool:
         return property.rent > 50
 
     @staticmethod
@@ -162,7 +162,7 @@ def run_simulation():
     for _ in range(0, ITERATIONS_TO_RUN):
         players = [
             Player(Strategies.impulsive),
-            Player(Strategies.picky),
+            Player(Strategies.demanding),
             Player(Strategies.cautious),
             Player(Strategies.random),
         ]
